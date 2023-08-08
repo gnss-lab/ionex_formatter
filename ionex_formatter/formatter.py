@@ -33,7 +33,7 @@ class IonexFile:
 
     
     def __init__(self):
-        self._raw_description = ""
+        self._raw_data = dict()
         self.description = ""
         self._raw_start_time = ""
         self._raw_last_time = ""
@@ -64,13 +64,18 @@ class IonexFile:
         :param last: time of the last map in IONEX file
         :type last: datetime.datetime
         """
-        self._raw_start_time = start
-        self._raw_last_time = last
-        self.start_time = self._header_date_time(start) + "EPOCH OF FIRST MAP"
-        self.last_time = self._header_date_time(last) + "EPOCH OF LAST MAP"
-        self.start_time = self.start_time.ljust(self.max_line_length) + "\n"
-        self.last_time = self.last_time.ljust(self.max_line_length) + "\n"
-        
+        self._raw_data["first_map_time"] = start
+        self._raw_data["last_map_time"] = last
+        ids = {"first_map_time": "EPOCH OF FIRST MAP",
+               "last_map_time": "EPOCH OF LAST MAP"}
+        times = {"first_map_time": start,
+               "last_map_time": last}
+        for time_type, time in times.items():
+            _id = ids[time_type]
+            line = self._get_header_date_time(time) + _id
+            line = line.ljust(self.max_line_length)
+            self.header[_id].append(line)
+
     def set_spatial_grid(self, 
                         lat_range: SpatialRange,
                         lon_range: SpatialRange,
@@ -147,7 +152,7 @@ class IonexFile:
         token = token.rjust(width)
         return token
         
-    def _header_date_time(self, epoch: datetime) -> str:
+    def _get_header_date_time(self, epoch: datetime) -> str:
         """
         Converts datetime to string according to fit IONEX header.
         
