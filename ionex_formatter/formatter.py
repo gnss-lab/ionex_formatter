@@ -34,11 +34,6 @@ class IonexFile:
     
     def __init__(self):
         self._raw_data = dict()
-        self.description = ""
-        self._raw_start_time = ""
-        self._raw_last_time = ""
-        self.start_time = ""
-        self.last_time = ""
         self.header = defaultdict(list)
 
     
@@ -51,9 +46,12 @@ class IonexFile:
 
         :type description: string
         """
-        self._raw_description = self.description
-        self.description = self._format_header_long_string(description, 
-                                                           "DESCRIPTION")
+        self._raw_data["description"] = description
+        _id = "DESCRIPTION"
+        description = self._format_header_long_string(description, 
+                                                      "DESCRIPTION")
+        self.header[_id] = description
+        
         
     def set_epoch_range(self, start: datetime, last: datetime) -> None:
         """
@@ -173,7 +171,7 @@ class IonexFile:
         line = line.ljust(self.header_line_length)
         return line
 
-    def _format_header_long_string(self, info: str, comment: str) -> str:
+    def _format_header_long_string(self, info: str, string_id: str) -> str:
         """
         Formats long string to fit IONEX file header
         
@@ -183,7 +181,7 @@ class IonexFile:
         """
         words = info.split()
         if len(words) == 0:
-            return ""
+            return []
         lines = []
         current_line = ""
         for word in words:
@@ -199,11 +197,10 @@ class IonexFile:
         # add comment in the end of information and fotmat line to 80 symbols
         for i, line in enumerate(lines):
             current_line = line.ljust(self.header_line_length)
-            current_line = current_line + comment
+            current_line = current_line + string_id
             current_line = current_line.ljust(self.max_line_length)
             lines[i] = current_line
         
-        result = '\n'.join(lines)
-        return result + '\n'
+        return lines
 
             
