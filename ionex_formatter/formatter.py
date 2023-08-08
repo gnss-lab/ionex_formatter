@@ -1,4 +1,30 @@
 from datetime import datetime
+from collections import defaultdict
+
+from .spatial import SpatialRange
+
+class HeaderDuplicatedLine(Exception):
+    """
+    Raised when try to set header line while it already has values
+    """
+    pass
+
+class NumericTokenTooBig(Exception):
+    """
+    Raised when the number when converted to string does not fit 
+    specified width.
+    
+    For example:
+    
+        number 123.456 when is fitted in to width 6 with 3 decimal digit, 
+        while it can fitt with 1 decimal digit (123.4)
+        
+        
+    """
+    def __init__(self, val: float, widht: int, decimal: int):
+        message = "Value {val} with {decimal} decimal digit does not fit" \
+                  "{width} widht"
+        super().__init__(message)
 
 class IonexFile:
     
@@ -13,6 +39,7 @@ class IonexFile:
         self._raw_last_time = ""
         self.start_time = ""
         self.last_time = ""
+        self.header = defaultdict(list)
 
     
     def set_description(self, description: str) -> None:
@@ -43,6 +70,82 @@ class IonexFile:
         self.last_time = self._header_date_time(last) + "EPOCH OF LAST MAP"
         self.start_time = self.start_time.ljust(self.max_line_length) + "\n"
         self.last_time = self.last_time.ljust(self.max_line_length) + "\n"
+        
+    def set_spatial_grid(self, 
+                        lat_range: SpatialRange,
+                        lon_range: SpatialRange,
+                        height_range: SpatialRange) -> None:
+        """
+        Sets spatial range to be written to header.
+        
+        These include height, latitude and longitude: 
+        
+        450.0 450.0   0.0                   HGT1 / HGT2 / DHGT  
+         87.5 -87.5  -2.5                   LAT1 / LAT2 / DLAT  
+        -180.0 180.0   5.0                  LON1 / LON2 / DLON  
+        
+        Format for these lines is:  2X, 3F6.1, 40X 
+       
+        :param height_range: range and steps for height. Since the 
+        :type height_range: SpatialRange
+        
+        :param lat_range: range and steps for latitude
+        :type lat_range: SpatialRange
+        
+        :param lon_range: range and steps for longitude
+        :type lon_range: SpatialRange
+        """
+        width = 6
+        start_space = 2
+        fin_space = 40
+        ranges = {"lat": lat_range, 
+                  "lon": lon_range, 
+                  "height":height_range}
+        ids = {"lat": "LAT1 / LAT2 / DLAT",
+               "lon": "LON1 / LON2 / DLON",
+                "height": "HGT1 / HGT2 / DHGT"}
+        duplicates =[c for c in ids.values() if c in self.header]
+        if duplicates:
+            raise HeaderDuplicatedLine
+        for rng_type, rng in ranges.items():
+            rng.verify()
+            mnt = self._get_header_numeric_token(rng.vmin, width, rng.decimal)
+            mxt = self._get_header_numeric_token(rng.vmax, width, rng.decimal)
+            stp = self._get_header_numeric_token(rng.vstep, width, rng.decimal)
+            line = " " * start_space + mnt + mxt + stp + " " * fin_space
+            _id = ids[rng_type]
+            line = line + _id
+            line = line.ljust(self.max_line_length)
+            self.header[_id].append(line)
+            
+            
+    def _get_header_numeric_token(self, 
+                                  val: float, 
+                                  width: int,
+                                  decimal: int ) -> str:
+        """
+        Converts number to string given decimal digits and width.
+        
+        :param val: number to be converted
+        :type val: float
+        
+        :param width: number of symbols occupied by token. If number is 
+            shorter, then space are added to the left
+        :type width: int
+        
+        :param decimal: number of decimal digits to be stored. If there is no
+            enough decimal digit then zeros are added to the right
+        :type decimal: int
+        """
+        token = str(round(float(val), decimal))
+        point_pos = token.index('.')
+        add_zeros = len(token) - (point_pos + decimal + 1)
+        if add_zeros:
+            token = token + "0" * add_zeros
+        if len(token) > width:
+            raise NumericTokenTooBig(val, widht, decimal)
+        token = token.rjust(width)
+        return token
         
     def _header_date_time(self, epoch: datetime) -> str:
         """
