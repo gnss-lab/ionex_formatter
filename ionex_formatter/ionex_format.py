@@ -2,6 +2,9 @@ from pathlib import Path
 import json
 
 class FormatDescriptionLabelMissing(Exception):
+    """
+    Raised when there no description for label listed in HEADER_FORMATS
+    """
     pass
 
 class IonexHeader_V_1_1:
@@ -49,7 +52,9 @@ class IonexHeader_V_1_1:
         "END OF FILE": "60X",
     }
 
-    HEADER_DESCRIPTIONS = {}
+    HEADER_DESCRIPTIONS = dict()
+
+    AUTO_FORMATTED_LABELS = list()
 
     __instance = None
 
@@ -58,6 +63,9 @@ class IonexHeader_V_1_1:
             class_.__instance = object.__new__(class_, *args, **kwargs)
         class_.__instance.init_fields("ionex_formatter/header_line_descriptions.json")
         return class_.__instance
+
+    def _update(self):
+        self.init_fields("ionex_formatter/header_line_descriptions.json")
 
     def init_fields(self, description_path: str | Path) -> None:
         """
@@ -71,11 +79,32 @@ class IonexHeader_V_1_1:
         """
         self.load_descriptions(description_path) 
         format_labels = list(self.HEADER_FORMATS.keys())
-        descrition_labels = list(self.HEADER_DESCRIPTIONS.keys())
+        description_labels = list(self.HEADER_DESCRIPTIONS.keys())
         format_labels.sort()
-        descrition_labels.sort()
-        if format_labels != descrition_labels:
+        description_labels.sort()
+        if format_labels != description_labels:
             raise FormatDescriptionLabelMissing
+        self.make_automatic_label_format_list()
+
+    def make_automatic_label_format_list(self):
+        self.AUTO_FORMATTED_LABELS = list()
+        for label, format in self.HEADER_FORMATS.items():
+            format_tokens = format.split(', ')
+            label_tokens = label.split(' / ')
+            format_tokens_number = 0
+            for token in format_tokens:
+                if 'X' in token:
+                    continue
+                if len(token) > 2 and token[0].isnumeric() and token[1].isalpha():
+                    format_tokens_number += int(token[0])
+                    continue
+                if token[-1] == 'A' or token[0].isalpha():
+                    format_tokens_number += 1
+                    continue
+                raise ValueError('Unknown format token {}'.format(token))
+            if len(label_tokens) == format_tokens_number:
+                self.AUTO_FORMATTED_LABELS.append(label)
+        self.AUTO_FORMATTED_LABELS.sort()
 
     def load_descriptions(self, file_path: str | Path) -> None:
         """
@@ -104,3 +133,12 @@ class IonexHeader_V_1_1:
                 msg = msg.format(key, val, key_type, val_type)
                 raise TypeError(msg)
                 
+    def line_tokens(self, label):
+        format_tokens = self.HEADER_FORMATS[label].split(', ')
+        label_tokens = label.split(' / ')
+        for token in format_tokens:
+            if 'X' in token:
+                continue
+
+class IonexHeader(IonexHeader_V_1_1):
+    pass

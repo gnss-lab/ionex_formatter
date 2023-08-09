@@ -9,7 +9,35 @@ from ionex_formatter.ionex_format import (
 class TestIoneHeaderFormat:
 
     def test_init(self):
-        IonexHeader_V_1_1()
+        header_format = IonexHeader_V_1_1()
+        auto_labels = [
+            "PGM / RUN BY / DATE",
+            "DESCRIPTION",
+            "COMMENT",
+            "INTERVAL",
+            "# OF MAPS IN FILE",
+            "MAPPING FUNCTION",
+            "ELEVATION CUTOFF",
+            "OBSERVABLES USED",
+            "# OF STATIONS",
+            "# OF SATELLITES",
+            "SYS / # STA / # SAT",
+            "BASE RADIUS",
+            "MAP DIMENSION",
+            "HGT1 / HGT2 / DHGT",
+            "EXPONENT",
+            "START OF AUX DATA",
+            "END OF AUX DATA",
+            "START OF TEC MAP",
+            "LAT / LON1 / LON2 / DLON / H",
+            "END OF TEC MAP",
+            "START OF RMS MAP",
+            "END OF RMS MAP",
+            "START OF HEIGHT MAP",
+            "END OF HEIGHT MAP",
+        ]
+        auto_labels.sort()
+        assert auto_labels == header_format.AUTO_FORMATTED_LABELS
 
     def test_label_description_is_missing(self, tmp_path):
         with open("ionex_formatter/header_line_descriptions.json", "r") as f:
