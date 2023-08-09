@@ -1,15 +1,18 @@
 [tool.poetry]
-name = "ionex-generator"
+name = "ionex-formatter"
 version = "0.1.0"
 description = "Converter of data from array to IONEX format."
 authors = ["Artem Vesnin <artemvesnin@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "ionex_generator"}]
+packages = [{include = "ionex_formatter"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
 
 [build-system]
 requires = ["poetry-core"]
