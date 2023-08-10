@@ -55,6 +55,56 @@ class IonexFile:
         self.header = defaultdict(list)
         self.header_format = IonexHeader()
 
+    def set_version_type_gnss(self, 
+                              version: float=1.0, 
+                              map_type:str="I", 
+                              gnss_type: str="GPS"):
+        label = "IONEX VERSION / TYPE"
+        data = [version, map_type, gnss_type]
+        self.update_label(label, data)
+
+    def set_sites(self, sites: list[str]) -> None:
+        """
+        Sets station used to create maps in IONEX file
+
+        :param sites: list of 4-symbol station names
+        :type sites: list[str]
+        """
+        self._raw_data["sites"] = sites
+        label = "COMMENT"
+        sites_lines = self._format_header_long_string(" ".join(sites), 
+                                                      label)
+        self.header[label].extend(sites_lines)
+
+    def add_comment(self, comment: str | list) -> None:
+        """
+        Adds comments to be reflected in IONEX file header.
+
+        :param comment: description to be stored under COMMENT label
+            in IONEX file header
+        :type description: string or list
+        """
+        self._raw_data["comment"] = comment
+        label = "COMMENT"
+        header_lines = []
+        if isinstance(comment, str):
+            header_lines = self._format_header_long_string(comment, label)
+        else:
+            for line in comment:
+                header_lines.append(line.rjust(self.header_line_length))
+        self.header[label].extend(header_lines)
+
+    def update_label(self, label: str, data: list) -> None:
+        """
+        Wrapper over format_header_line using line label instead of
+        line format.
+        """
+        line_format = self.header_format.HEADER_FORMATS[label]
+        formatted  = self.format_header_line(data, line_format)
+        self.header[label] = formatted + label
+        self.header[label] = self.header[label].ljust(self.max_line_length)
+
+
     def format_header_line(self, data: list, format_string: str) -> str:
         """
         Format a line of header data according to the given format specification.
@@ -85,8 +135,8 @@ class IonexFile:
 
         if len(val_tokens) != len(data):
             msg = "Data length {} doesn't correspond to length of " \
-                "format tokens {}"
-            msg = msg.format(len(data), len(val_tokens))
+                "format tokens {}. See data {} and format {}"
+            msg = msg.format(len(data), len(val_tokens), data, format_string)
             raise ValueError(msg)
         i  = 0
         for token in tokens:
@@ -183,20 +233,24 @@ class IonexFile:
         unwrapped_format = ", ".join(unwrapped_tokens)
         return unwrapped_format     
     
-    def set_description(self, description: str) -> None:
+    def set_description(self, description: str | list) -> None:
         """
         Sets description to be reflected in IONEX file header
 
-        :param description: description to be stored under DESCRIPTION comment
+        :param description: description to be stored under DESCRIPTION label
             in IONEX file header
 
         :type description: string
         """
         self._raw_data["description"] = description
         _id = "DESCRIPTION"
-        description = self._format_header_long_string(description, 
-                                                      "DESCRIPTION")
-        self.header[_id] = description
+        header_lines = []
+        if isinstance(description, str):
+            header_lines = self._format_header_long_string(description, _id)
+        else:
+            for line in description:
+                header_lines.append(line.rjust(self.header_line_length))
+        self.header[_id] = header_lines
         
         
     def set_epoch_range(self, start: datetime, last: datetime) -> None:
@@ -317,7 +371,7 @@ class IonexFile:
         line = line.ljust(self.header_line_length)
         return line
 
-    def _format_header_long_string(self, info: str, string_id: str) -> str:
+    def _format_header_long_string(self, info: str, string_id: str) -> list:
         """
         Formats long string to fit IONEX file header
         
