@@ -1,8 +1,13 @@
 from datetime import datetime
 from collections import defaultdict
+from typing import Any
 
 from .spatial import SpatialRange
 from .ionex_format import IonexHeader
+
+class UnknownFormatingError(Exception):
+    def __init__(self, msg):
+        super().__init__(msg)
 
 class UnknownFormatSpecifier(Exception):
     """
@@ -50,29 +55,112 @@ class IonexFile:
         self.header = defaultdict(list)
         self.header_format = IonexHeader()
 
+    def format_header_line(self, data: list, format_string: str) -> str:
+        """
+        Format a line of header data according to the given format specification.
 
-    def unwrap_format_spec(self, format_spec):
+        :param list data: A list of data elements to be formatted.
+        :type data: list
+
+        :param format_spec: A list of format specifications for each data element.
+            Supported format specifiers: 'F' (float), 'I' (integer), 'A' (string),
+            and 'X' (whitespace). The format specifiers are followed by the field width.
+        :type format_string: str
+
+        :return: The formatted line of header data.
+        :rtype: str
+
+        **Example**
+
+        >>> data = [1, 'I', 'BEN', 5]
+        >>> format_spec = ['F8.1', '12X', 'A1', '19X', 'A3', '16X', 'I1']
+        >>> formatted_header_line = format_line(data, format_spec)
+        >>> print(formatted_header_line)
+             1.0            I                   BEN                5
+        """
+        formatted_line = ""
+        format_string = self.unwrap_format_spec(format_string)
+        tokens = format_string.split(', ')
+        val_tokens = [f for f in tokens if not 'X' in f]
+
+        if len(val_tokens) != len(data):
+            msg = "Data length {} doesn't correspond to length of " \
+                "format tokens {}"
+            msg = msg.format(len(data), len(val_tokens))
+            raise ValueError(msg)
+        i  = 0
+        for token in tokens:
+            formatted_data = ""
+            width = 0
+            precision = 0
+            if token[0] == 'F':
+                width, precision = map(int, token[1:].split('.'))
+                formatted_data = f"{float(data[i]):.{precision}f}"
+            elif token[0] == 'I':
+                width = int(token[1:])
+                formatted_data = str(data[i])
+            elif token[0] == 'A':
+                width = int(token[1:])
+                formatted_data = data[i]
+            elif token[-1] == 'X':
+                width = int(token[:-1])
+                formatted_data = "".rjust(width)
+            else:
+                raise UnknownFormatSpecifier(token)
+            if token[-1] != 'X':
+                self._verify_formatted(
+                    data[i], token[0], formatted_data, width, precision
+                )
+                formatted_data = formatted_data.rjust(width)
+                i += 1
+            formatted_line += formatted_data
+        
+        return formatted_line
+
+    def _verify_formatted(self, 
+                          data: Any, 
+                          fmt: str, 
+                          formatted_data: str, 
+                          width: int, 
+                          precision: int):
+        if len(formatted_data) > width:
+            raise NumericTokenTooBig(data, width, precision)
+        if fmt == "A":
+            return True
+        if fmt == "F":
+            convert = float 
+        elif fmt == "I":
+            convert = int 
+        else:
+            raise UnknownFormatSpecifier(fmt)
+        if convert(formatted_data) != convert(data):
+            msg = "Formatted data '{}' does not match original data '{}'"
+            msg = msg.format(formatted_data, data)
+            raise UnknownFormatingError(msg)
+        return True
+
+    def unwrap_format_spec(self, format_string):
         """
         Unwrap a format specification string to expand the repetition 
         count for 'F', 'I', and 'A' format specifiers.
 
-        :param format_spec: The format specification string to unwrap.
-        :type format_spec: str
+        :param format_string: The format specification string to unwrap.
+        :type format_string: str
 
         :return: The unwrapped format specification string.
         :rtype: str
 
         **Example**
 
-        >>> format_spec = "2X, 3F6.1, I3, 10A2, 17X"
-        >>> unwrapped_format = unwrap_format_speciefrs(format_spec)
+        >>> format_string = "2X, 3F6.1, I3, 10A2, 17X"
+        >>> unwrapped_format = unwrap_format_spec(format_spec)
         >>> print(unwrapped_format)
         "2X, F6.1, F6.1, F6.1, I3, A2, A2, A2, A2, A2, A2, A2, A2, A2, A2, 17X"
         """
         unwrapped_tokens = []
-        if not format_spec:
+        if not format_string:
             return ""
-        tokens = format_spec.split(", ")
+        tokens = format_string.split(", ")
         
         for token in tokens:
             if "X" in token:
@@ -93,10 +181,7 @@ class IonexFile:
                 raise UnknownFormatSpecifier(token)
         
         unwrapped_format = ", ".join(unwrapped_tokens)
-        return unwrapped_format
-
-    def format_header_line(self, data, format_spec):
-        pass        
+        return unwrapped_format     
     
     def set_description(self, description: str) -> None:
         """
