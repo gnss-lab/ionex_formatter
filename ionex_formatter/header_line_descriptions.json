@@ -27,5 +27,6 @@
     "END OF RMS MAP": "Record indicating the end of an RMS map.",
     "START OF HEIGHT MAP": "Record indicating the start of a HEIGHT\nmap related to the i-th TEC map (see\nalso 'START OF TEC MAP').",
     "END OF HEIGHT MAP": "Record indicating the end of a HGT map.",
+    "END OF HEADER": "Last record of header section.",
     "END OF FILE": "Last record closing the IONEX file."
 }

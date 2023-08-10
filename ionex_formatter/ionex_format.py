@@ -49,6 +49,7 @@ class IonexHeader_V_1_1:
         "END OF RMS MAP": "I6, 54X",
         "START OF HEIGHT MAP": "I6, 54X",
         "END OF HEIGHT MAP": "I6, 54X",
+        "END OF HEADER": "60X",
         "END OF FILE": "60X",
     }
 
