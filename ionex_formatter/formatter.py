@@ -2,6 +2,19 @@ from datetime import datetime
 from collections import defaultdict
 
 from .spatial import SpatialRange
+from .ionex_format import IonexHeader
+
+class UnknownFormatSpecifier(Exception):
+    """
+    Raised when there unknow specifier in format. 
+
+    Valid specifiers are [n]Im, [n]Fm.k, Am, mX, where  n, m , k are integers and
+    n could appear or could not appear: 6I3 and I3 are both valid.
+    """
+    def __init__(self, specifier: str):
+        msg = "There is no processing for {}".format(specifier)
+        super().__init__(msg)
+
 
 class HeaderDuplicatedLine(Exception):
     """
@@ -22,9 +35,9 @@ class NumericTokenTooBig(Exception):
         
     """
     def __init__(self, val: float, widht: int, decimal: int):
-        message = "Value {val} with {decimal} decimal digit does not fit" \
-                  "{width} widht"
-        super().__init__(message)
+        msg = "Value {} with {} decimal digit does not fit {} widht"
+        msg.format(val, decimal, widht)
+        super().__init__(msg)
 
 class IonexFile:
     
@@ -35,7 +48,55 @@ class IonexFile:
     def __init__(self):
         self._raw_data = dict()
         self.header = defaultdict(list)
+        self.header_format = IonexHeader()
 
+
+    def unwrap_format_spec(self, format_spec):
+        """
+        Unwrap a format specification string to expand the repetition 
+        count for 'F', 'I', and 'A' format specifiers.
+
+        :param format_spec: The format specification string to unwrap.
+        :type format_spec: str
+
+        :return: The unwrapped format specification string.
+        :rtype: str
+
+        **Example**
+
+        >>> format_spec = "2X, 3F6.1, I3, 10A2, 17X"
+        >>> unwrapped_format = unwrap_format_speciefrs(format_spec)
+        >>> print(unwrapped_format)
+        "2X, F6.1, F6.1, F6.1, I3, A2, A2, A2, A2, A2, A2, A2, A2, A2, A2, 17X"
+        """
+        unwrapped_tokens = []
+        if not format_spec:
+            return ""
+        tokens = format_spec.split(", ")
+        
+        for token in tokens:
+            if "X" in token:
+                unwrapped_tokens.append(token)
+            elif token[0] in ("F", "I", "A"):
+                unwrapped_tokens.append(token)
+            elif token[1] in ("F", "I", "A") or token[2] in ("F", "I", "A"):
+                if token[1] in ("F", "I", "A"):
+                    type_position = 1  
+                else:
+                    type_position = 2
+                type_spec = token[type_position]
+                count, specifier = token.split(type_spec)
+                unwrapped_token = "{}{}".format(type_spec, specifier)
+                for _ in range(int(count)):
+                    unwrapped_tokens.append(unwrapped_token)
+            else:
+                raise UnknownFormatSpecifier(token)
+        
+        unwrapped_format = ", ".join(unwrapped_tokens)
+        return unwrapped_format
+
+    def format_header_line(self, data, format_spec):
+        pass        
     
     def set_description(self, description: str) -> None:
         """
@@ -141,12 +202,12 @@ class IonexFile:
         :type decimal: int
         """
         token = str(round(float(val), decimal))
-        point_pos = token.index('.')
+        point_pos = token.index(".")
         add_zeros = len(token) - (point_pos + decimal + 1)
         if add_zeros:
             token = token + "0" * add_zeros
         if len(token) > width:
-            raise NumericTokenTooBig(val, widht, decimal)
+            raise NumericTokenTooBig(val, width, decimal)
         token = token.rjust(width)
         return token
         
