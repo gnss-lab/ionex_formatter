@@ -1,0 +1,51 @@
+     1.0            IONOSPHERE MAPS     GPS                 IONEX VERSION / TYPE
+tecrms2ionex_4.awk  UPC-IonSAT          11/14/18  411UT     PGM / RUN BY / DATE 
+Global ionosphere maps for day 362, 2010 (28-12-2010)       DESCRIPTION         
+                                                            DESCRIPTION         
+                                                            DESCRIPTION         
+P1-P2 DCBs(UPC3-BRDC) 362 2010: Bias=  0.000 RMS= 0.851 [ns]DESCRIPTION         
+                                                            DESCRIPTION         
+  2010    12    28     0     0     0                        EPOCH OF FIRST MAP  
+  2010    12    28    23    59    24                        EPOCH OF LAST MAP   
+   900                                                      INTERVAL            
+    97                                                      # OF MAPS IN FILE   
+  COSZ                                                      MAPPING FUNCTION    
+     0.0                                                    ELEVATION CUTOFF    
+   300                                                      # OF STATIONS       
+    32                                                      # OF SATELLITES     
+  6371.0                                                    BASE RADIUS         
+     2                                                      MAP DIMENSION       
+   450.0 450.0   0.0                                        HGT1 / HGT2 / DHGT  
+    87.5 -87.5  -2.5                                        LAT1 / LAT2 / DLAT  
+  -180.0 180.0   5.0                                        LON1 / LON2 / DLON  
+    -1                                                      EXPONENT            
+TEC values in  0.1 TECUs; 9999 if no value available        COMMENT             
+IGS GPS stations used in the computations:                  COMMENT             
+019b ab02 ab06 ab09 ab11 ab12 ab13 ab25 ab27 ab33 ab37 ab41 COMMENT             
+ab42 ab44 ab45 ab49 abmf abpo ac03 ac12 ac61 acor acso acu5 COMMENT             
+adis adks agmt ahid aira ajac alac albh alg3 alic allg alon COMMENT             
+alrt alth amc2 ankr antc arco areq arli artu aspa auck autf COMMENT             
+baie bake bald barh bcyi bdos bell bilb bjfs bla1 bluf boav COMMENT             
+bogi bogt bomj brft brip brmu brst brus bshm bsmk bucu buri COMMENT             
+burn bysp bzrg cabl cagl call cand cant cas1 casc cauq ccj2 COMMENT             
+cedu cefe chan chat chiz chud chum chur cjtr ckis clrk cmbl COMMENT             
+cnmr coco cola copo cosa coyq crao crar crrl cuib cusv daej COMMENT             
+dane darw dav1 devi dgar dgjg dksg drao dres dubo dubr dum1 COMMENT             
+dupt ecsd eur2 faa1 falk fall fbyn flin flrs func g101 g107 COMMENT             
+g117 g124 g201 g202 ganp gisb glps glsv gmas gmma goav guao COMMENT             
+guat harb hdil helg her2 hil1 hilb hlfx hmbg hnlc hob2 hobu COMMENT             
+hofn holm howe hrst hua2 hueg hugo hvwy hyde ibiz iisc impz COMMENT             
+ineg invk iqal iqqe irkj isba ispa ista jct1 joen karr kbug COMMENT             
+kely kerg khaj khar khlr kir0 kiri kit3 kouc kour ksnb kunm COMMENT             
+kuuj kvtx lamp lamt laut lhaz lpal lpgs lthw mac1 majb mal2 COMMENT             
+mana mar6 mara marg maua maw1 mchn mdvj meri mobs moiu morp COMMENT             
+mtbg nain nama naur neia nium nklg novm nril ntus nya1 oax2 COMMENT             
+ohi2 onsa ouri p001 p038 p050 palk park pece pets pimo pngm COMMENT             
+poal pohn qaar qaq1 qiki rabt rbay rcm7 reso reun reyk riga COMMENT             
+riob riop sa61 saga sask savo sch2 scor scrz sey1 sg27 shao COMMENT             
+smm1 soda stj2 sumk suth syog tash tehn tixg tong topl tow2 COMMENT             
+trds tro1 tuva ufpr ulab unbj vacs vanu vis0 vlns whit whng COMMENT             
+whtm will wind wuhn xian xmis yakt yell yibl ykro ymer zeck COMMENT             
+DIFFERENTIAL CODE BIASES                                    START OF AUX DATA   
+DIFFERENTIAL CODE BIASES                                    END OF AUX DATA     
+                                                            END OF HEADER       
