@@ -155,8 +155,8 @@ class IonexFile:
         """
         line_format = self.header_format.HEADER_FORMATS[label]
         formatted  = self.format_header_line(data, line_format)
-        self.header[label] = formatted + label
-        self.header[label] = self.header[label].ljust(self.max_line_length)
+        line = formatted + label
+        self.header[label].append(line.ljust(self.max_line_length))
 
 
     def format_header_line(self, data: list, format_string: str) -> str:
@@ -215,7 +215,10 @@ class IonexFile:
                 self._verify_formatted(
                     data[i], token[0], formatted_data, width, precision
                 )
-                formatted_data = formatted_data.rjust(width)
+                if token[0] == 'A':
+                    formatted_data = formatted_data.ljust(width)
+                else:
+                    formatted_data = formatted_data.rjust(width)
                 i += 1
             formatted_line += formatted_data
         

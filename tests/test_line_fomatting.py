@@ -15,14 +15,14 @@ class TestLineFormating():
         data = [1, 2, '3']
         format_spec = "I3, 2X, F7.3, 3X, A2, 10X"
         formatted_line = formatter.format_header_line(data, format_spec)
-        expected = "  1    2.000    3          "
+        expected = "  1    2.000   3           "
         assert formatted_line == expected
 
     def test_format_line_basic_str(self, formatter):
         data = ['1', '2.0', '3']
         format_spec = "I3, 2X, F7.3, 3X, A2, 10X"
         formatted_line = formatter.format_header_line(data, format_spec)
-        expected = "  1    2.000    3          "
+        expected = "  1    2.000   3           "
         assert formatted_line == expected
 
     def test_format_line_blank(self, formatter):
