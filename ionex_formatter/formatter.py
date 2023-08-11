@@ -55,6 +55,50 @@ class IonexFile:
         self.header = defaultdict(list)
         self.header_format = IonexHeader()
 
+    def set_header_order(self, order: list=[]):
+        """
+        Set new order of lines to be listed in header
+
+        :param order: list of label in order
+        :type order: list
+
+        :raises ValueError: when first (IONEX VERSION / TYPE) and 
+            last (END OF HEADER) lines are not correct
+        """
+        self.line_order=[
+            "IONEX VERSION / TYPE",
+            "PGM / RUN BY / DATE",
+            "DESCRIPTION",
+            "COMMENT",
+            "EPOCH OF FIRST MAP",
+            "EPOCH OF LAST MAP",
+            "INTERVAL"
+            "# OF MAPS IN FILE",
+            "MAPPING FUNCTION",
+            "ELEVATION CUTOFF",
+            "# OF STATIONS",
+            "# OF SATELLITES",
+            "OBSERVABLES USED",
+            "BASE RADIUS",
+            "MAP DIMENSION",
+            "HGT1 / HGT2 / DHGT",
+            "LAT1 / LAT2 / DLAT",
+            "LON1 / LON2 / DLON",
+            "EXPONENT",
+            "START OF AUX DATA",
+            "END OF AUX DATA",
+            "END OF HEADER"
+        ]
+        if order:
+            if order[0] != "IONEX VERSION / TYPE":
+                msg = "First record in file should be 'IONEX VERSION / TYPE'"
+                raise ValueError(msg)
+            elif order[-1] != "END OF HEADER":
+                msg = "Last record in header should be 'END OF HEADER'"
+                raise ValueError(msg)
+            self.line_order=order
+
+
     def set_version_type_gnss(self, 
                               version: float=1.0, 
                               map_type:str="I", 
