@@ -1,4 +1,4 @@
-     1.0            IONOSPHERE MAPS     GPS                 IONEX VERSION / TYPE
+     1.0            I                   GPS                 IONEX VERSION / TYPE
 tecrms2ionex_4.awk  UPC-IonSAT          11/14/18  411UT     PGM / RUN BY / DATE 
 Global ionosphere maps for day 362, 2010 (28-12-2010)       DESCRIPTION         
                                                             DESCRIPTION         

@@ -145,7 +145,8 @@ class IonexFile:
             header_lines = self._format_header_long_string(comment, label)
         else:
             for line in comment:
-                header_lines.append(line.rjust(self.header_line_length))
+                _line = line.ljust(self.header_line_length) + label
+                header_lines.append(_line.ljust(self.max_line_length))
         self.header[label].extend(header_lines)
 
     def update_label(self, label: str, data: list) -> None:
@@ -300,14 +301,15 @@ class IonexFile:
         :type description: string
         """
         self._raw_data["description"] = description
-        _id = "DESCRIPTION"
+        label = "DESCRIPTION"
         header_lines = []
         if isinstance(description, str):
-            header_lines = self._format_header_long_string(description, _id)
+            header_lines = self._format_header_long_string(description, label)
         else:
             for line in description:
-                header_lines.append(line.rjust(self.header_line_length))
-        self.header[_id] = header_lines
+                _line = line.ljust(self.header_line_length) + label
+                header_lines.append(_line.ljust(self.max_line_length))
+        self.header[label] = header_lines 
         
         
     def set_epoch_range(self, start: datetime, last: datetime) -> None:

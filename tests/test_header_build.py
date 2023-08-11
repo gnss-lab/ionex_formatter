@@ -62,11 +62,82 @@ class TestIonexHeaderBuild():
     
     def test_header_validity(self, sample_header):
         assert len(sample_header) == 51
-        md5_control = "0cbdce4121a3621d0d61f74eaf683db6"
+        md5_control = "a0dba3982a59e2b7c9456394a57b4761"
         md5_test = (hashlib.md5("".join(sample_header).encode())).hexdigest()
         assert md5_test == md5_control
 
+    def test_version_set(self):
+        formatter = IonexFile()
+        formatter.set_version_type_gnss(version=1.0, map_type="I", gnss_type='GPS')
+        expected  = ["     1.0            I                   " \
+                     "GPS                 IONEX VERSION / TYPE"]
+        assert formatter.header["IONEX VERSION / TYPE"] == expected
+
+    def test_comment(self):
+        formatter = IonexFile()
+        formatter.add_comment(comment)
+        formatter.add_comment(comment)
+        expected  = [
+            "TEC values in  0.1 TECUs; 9999 if no val"  
+            "ue available        COMMENT             ", 
+            "IGS GPS stations used in the computation" 
+            "s:                  COMMENT             ",
+            "TEC values in  0.1 TECUs; 9999 if no val"  
+            "ue available        COMMENT             ", 
+            "IGS GPS stations used in the computation" 
+            "s:                  COMMENT             "
+        ]
+        assert formatter.header["COMMENT"] == expected
+
+    def test_description(self):
+        formatter = IonexFile()
+        formatter.set_description(description)
+        expected  = [
+            "Global ionosphere maps for day 362, 2010"  
+            " (28-12-2010)       DESCRIPTION         ", 
+            "                                        "  
+            "                    DESCRIPTION         ",
+            "                                        "  
+            "                    DESCRIPTION         ",
+            "P1-P2 DCBs(UPC3-BRDC) 362 2010: Bias=  0" 
+            ".000 RMS= 0.851 [ns]DESCRIPTION         ",
+            "                                        " 
+            "                    DESCRIPTION         "
+    ]
+        assert formatter.header["DESCRIPTION"] == expected
+
+    def test_set_sites(self):
+        formatter = IonexFile()
+        formatter.set_sites(sites[:40])
+        expected = [
+            "019b ab02 ab06 ab09 ab11 ab12 ab13 ab25 " 
+            "ab27 ab33 ab37 ab41 COMMENT             ",
+            "ab42 ab44 ab45 ab49 abmf abpo ac03 ac12 "
+            "ac61 acor acso acu5 COMMENT             ",
+            "adis adks agmt ahid aira ajac alac albh "
+            "alg3 alic allg alon COMMENT             ",
+            "alrt alth amc2 ankr                     "
+            "                    COMMENT             "
+
+        ]
+        assert formatter.header["COMMENT"] == expected
+
+    def test_set_end_of_header(self):
+        formatter = IonexFile()
+        formatter.update_label("END OF HEADER", [])
+        expected = [
+            "                                        "
+            "                    END OF HEADER       "
+        ]
+        assert formatter.header["END OF HEADER"] == expected
+    
     def test_header_build(self, sample_header):
+        _sample_header = []
+        for line in sample_header:
+            if line.endswith("\n"):
+                _sample_header.append(line[:-1])
+            else:
+                _sample_header.append(line[:])
         formatter = IonexFile()
         formatter.set_version_type_gnss(version=1.0, map_type="I", gnss_type='GPS')
         formatter.update_label(
@@ -87,7 +158,7 @@ class TestIonexHeaderBuild():
         formatter.update_label("BASE RADIUS", [6371.0, ])
         formatter.update_label("MAP DIMENSION", [2, ])
         formatter.set_spatial_grid(
-            lat_range=SpatialRange(87.5, 87.5, -2.5), 
+            lat_range=SpatialRange(87.5, -87.5, -2.5), 
             lon_range=SpatialRange(-180, 180, 5),
             height_range=SpatialRange(450, 450, 0)
         )
@@ -101,6 +172,44 @@ class TestIonexHeaderBuild():
             "END OF AUX DATA", ["DIFFERENTIAL CODE BIASES", ]
         )
         formatter.update_label("END OF HEADER", [])
+        order = [
+            "IONEX VERSION / TYPE",
+            "PGM / RUN BY / DATE",
+            "DESCRIPTION",
+            "EPOCH OF FIRST MAP",
+            "EPOCH OF LAST MAP",
+            "INTERVAL",
+            "# OF MAPS IN FILE",
+            "MAPPING FUNCTION",
+            "ELEVATION CUTOFF",
+            "# OF STATIONS",
+            "# OF SATELLITES",
+            "OBSERVABLES USED",
+            "BASE RADIUS",
+            "MAP DIMENSION",
+            "HGT1 / HGT2 / DHGT",
+            "LAT1 / LAT2 / DLAT",
+            "LON1 / LON2 / DLON",
+            "EXPONENT",
+            "COMMENT",
+            "START OF AUX DATA",
+            "END OF AUX DATA",
+            "END OF HEADER"
+        ]
+        formatter.set_header_order(order)
+        ordered = [formatter.header[label] for label in formatter.line_order]
+        header = list()
+        for label_data in ordered:
+            header.extend(label_data)
+        for header_line, exp_line in zip(header, _sample_header):
+            assert header_line == exp_line
+        assert header == _sample_header
+        assert len(header) == len(sample_header) 
+        assert '\n'.join(header) == ''.join(sample_header)
+
+
+            
+
 
 
 
