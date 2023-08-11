@@ -16,6 +16,8 @@
     "BASE RADIUS": "Mean earth radius or bottom of height\ngrid (in km), e.g.: 6371 km or 6771 km.",
     "MAP DIMENSION": "Dimension of TEC/RMS maps: 2 or 3.\nSee also 'TEC VALUES'.",
     "HGT1 / HGT2 / DHGT": "Definition of an equidistant grid in\nheight:\n  'HGT1' to 'HGT2' with increment 'DHGT'\n  (in km), e.g.: '200.0 800.0 50.0'.\n  For 2-dimensional maps, HGT1 = HGT2 and\n  DHGT = 0, e.g.: '400.0 400.0 0.0' or\n  '0.0 0.0 0.0'\n  (see also 'BASE RADIUS').",
+    "LAT1 / LAT2 / DLAT": "Definition of the grid in latitude :\n'LAT1' to 'LAT2' with increment 'DLAT' (in degrees).\n'LAT1' and 'LAT2' always have to be multiples of 'DLAT'.\nExample: '87.5 -87.5 -2.5'.",
+    "LON1 / LON2 / DLON": "Definition of the grid in longitude :\n'LON1' to 'LON2' with increment 'DLON' (in degrees), where LON equals east longitude.\n'LON1' and 'LON2' always have to be multiples of 'DLON'.\nExample: '0.0 357.5 2.5' or '-180.0 177.5 2.5'.",
     "EXPONENT": "Exponent defining the unit of the values\nlisted in the following data block(s).\nDefault exponent is -1.\nSee also 'TEC VALUES', 'RMS VALUES', and\n'HGT VALUES'.",
     "START OF AUX DATA": "Record opening general escape sequence\nthat contains technique-related\nauxiliary data.\nNote that such data blocks may be\nskipped if you are interested in\nionospheric information only.",
     "END OF AUX DATA": "Record closing auxiliary data block.",
@@ -30,3 +32,4 @@
     "END OF HEADER": "Last record of header section.",
     "END OF FILE": "Last record closing the IONEX file."
 }
+

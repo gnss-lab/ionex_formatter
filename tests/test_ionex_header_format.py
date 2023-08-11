@@ -25,6 +25,8 @@ class TestIoneHeaderFormat:
             "BASE RADIUS",
             "MAP DIMENSION",
             "HGT1 / HGT2 / DHGT",
+            "LAT1 / LAT2 / DLAT",
+            "LON1 / LON2 / DLON",
             "EXPONENT",
             "START OF AUX DATA",
             "END OF AUX DATA",

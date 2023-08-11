@@ -38,6 +38,8 @@ class IonexHeader_V_1_1:
         "BASE RADIUS": "F8.1, 52X",
         "MAP DIMENSION": "I6, 54X",
         "HGT1 / HGT2 / DHGT": "2X, 3F6.1, 40X",
+        "LAT1 / LAT2 / DLAT": "2X, 3F6.1, 40X",
+        "LON1 / LON2 / DLON": "2X, 3F6.1, 40X",
         "EXPONENT": "I6, 54X",
         "START OF AUX DATA": "A60",
         "END OF AUX DATA": "A60",
