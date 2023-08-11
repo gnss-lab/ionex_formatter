@@ -9,6 +9,11 @@ class UnknownFormatingError(Exception):
     def __init__(self, msg):
         super().__init__(msg)
 
+class UnknownLabelError(Exception):
+    def __init__(self, label):
+        msg = "Label '{}' is not specified in ionex format".format(label)
+        super().__init__(msg)
+
 class UnknownFormatSpecifier(Exception):
     """
     Raised when there unknow specifier in format. 
@@ -54,6 +59,7 @@ class IonexFile:
         self._raw_data = dict()
         self.header = defaultdict(list)
         self.header_format = IonexHeader()
+        self.set_header_order()
 
     def set_header_order(self, order: list=[]):
         """
@@ -96,6 +102,10 @@ class IonexFile:
             elif order[-1] != "END OF HEADER":
                 msg = "Last record in header should be 'END OF HEADER'"
                 raise ValueError(msg)
+            for label in order:
+                if label not in self.header_format.HEADER_FORMATS:
+                    raise UnknownLabelError(label)
+
             self.line_order=order
 
 

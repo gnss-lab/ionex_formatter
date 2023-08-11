@@ -1,6 +1,7 @@
 import pytest
 from ionex_formatter.formatter import (
-    IonexFile
+    IonexFile,
+    UnknownLabelError
 )
 
 class TestFormatterUnwrappingFields():
@@ -22,6 +23,16 @@ class TestFormatterUnwrappingFields():
             header_formatter.set_header_order(miss_first_line_order)
         with pytest.raises(ValueError):
             header_formatter.set_header_order(miss_last_line_order)        
+
+    def test_unknown_label(self, header_formatter):
+        header_formatter.set_header_order()
+        line_order=[
+            "IONEX VERSION / TYPE",
+            "UNKNOWN",
+            "END OF HEADER"
+        ]
+        with pytest.raises(UnknownLabelError):
+            header_formatter.set_header_order(line_order)
     
     def test_set_header(self, header_formatter):
         line_order=[
