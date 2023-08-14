@@ -31,7 +31,7 @@ class TestIoneHeaderFormat:
             "START OF AUX DATA",
             "END OF AUX DATA",
             "START OF TEC MAP",
-            "LAT / LON1 / LON2 / DLON / H",
+            "LAT/LON1/LON2/DLON/H",
             "END OF TEC MAP",
             "START OF RMS MAP",
             "END OF RMS MAP",

@@ -23,7 +23,7 @@
     "END OF AUX DATA": "Record closing auxiliary data block.",
     "START OF TEC MAP": "Record indicating the start of the i-th\nTEC map, where i=1, 2, ..., n denotes the\ninternal number of the current map.\nAll maps have to be ordered chronologically.",
     "EPOCH OF CURRENT MAP": "Epoch of current map (UT):\n  year (4 digits), month, day, hour,\n  min, sec (integer).\n  'EPOCH OF CURRENT MAP' must be specified\n  at the first occurrence of the\n  associated map!",
-    "LAT / LON1 / LON2 / DLON / H": "Record initializing a new TEC/RMS/HGT\ndata block for latitude 'LAT' (and\nheight 'H(GT)'), from 'LON1' to 'LON2'\n(with increment 'DLON').\nIn case of 2-dimensional maps, it is\nrecommended to define H = HGT1.\nNeither other types of records nor\ncomment lines are allowed after this\nrecord and within the subsequent data\nblock!",
+    "LAT/LON1/LON2/DLON/H": "Record initializing a new TEC/RMS/HGT\ndata block for latitude 'LAT' (and\nheight 'H(GT)'), from 'LON1' to 'LON2'\n(with increment 'DLON').\nIn case of 2-dimensional maps, it is\nrecommended to define H = HGT1.\nNeither other types of records nor\ncomment lines are allowed after this\nrecord and within the subsequent data\nblock!",
     "END OF TEC MAP": "Record indicating the end of the i-th\nTEC map (see also 'START OF TEC MAP').",
     "START OF RMS MAP": "Record indicating the start of an RMS\nmap related to the i-th TEC map (see\nalso 'START OF TEC MAP').",
     "END OF RMS MAP": "Record indicating the end of an RMS map.",

@@ -45,7 +45,7 @@ class IonexHeader_V_1_1:
         "END OF AUX DATA": "A60",
         "START OF TEC MAP": "I6, 54X",
         "EPOCH OF CURRENT MAP": "6I6, 24X",
-        "LAT / LON1 / LON2 / DLON / H": "2X, 5F6.1, 28X",
+        "LAT/LON1/LON2/DLON/H": "2X, 5F6.1, 28X",
         "END OF TEC MAP": "I6, 54X",
         "START OF RMS MAP": "I6, 54X",
         "END OF RMS MAP": "I6, 54X",
@@ -93,7 +93,8 @@ class IonexHeader_V_1_1:
         self.AUTO_FORMATTED_LABELS = list()
         for label, format in self.HEADER_FORMATS.items():
             format_tokens = format.split(', ')
-            label_tokens = label.split(' / ')
+            label_tokens = label.split('/')
+            label_tokens = [token.strip() for token in label_tokens]
             format_tokens_number = 0
             for token in format_tokens:
                 if 'X' in token:
