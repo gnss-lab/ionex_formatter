@@ -1,9 +1,11 @@
 from datetime import datetime
 from collections import defaultdict
 from typing import Any
+from enum import Enum
 
 from .spatial import SpatialRange
 from .ionex_format import IonexHeader
+from .ionex_map import IonexMap
 
 class UnknownFormatingError(Exception):
     def __init__(self, msg):
@@ -49,17 +51,99 @@ class NumericTokenTooBig(Exception):
         msg.format(val, decimal, widht)
         super().__init__(msg)
 
+class IonexMapType(Enum):
+    TEC = 1
+    RMS = 2
+    HGT = 3
+
+
 class IonexFile:
     
     header_line_length = 60
     max_line_length = 80
+    VALUES_PER_LINE = 16
 
     
     def __init__(self):
         self._raw_data = dict()
         self.header = defaultdict(list)
         self.header_format = IonexHeader()
+        self.maps = defaultdict(dict)
         self.set_header_order()
+
+    def set_maps(self, maps: dict[list], dtype: IonexMapType):
+        """
+        Set maps to formatter.
+
+        Maps are given as dictionary using epoch as map time (epoch). 
+        For given time there could be several maps for different time 
+        (in general there is one map)
+
+        :param order: list of label in order
+        :type order: list
+
+        :param dtype: type of data stored in map
+        :type dtype: IonexMapType
+        """
+        self.maps[dtype] = maps
+
+    def get_map_lines(self, dtype: IonexMapType, epoch: datetime) -> list[str]:
+        """
+        Make formatted output for map.
+
+        :param dtype: type of map to be formatted
+        :type dtype: IonexMapType
+
+        :param epoch: time (epoch) of map to be formatted
+        :type epoch: datetime
+
+        """
+        lines = list()
+        maps: dict = self.maps[dtype]
+        epoch_map: IonexMap = maps[epoch]
+        epochs = list(maps.keys())
+        epochs.sort()
+        map_index = epochs.index(epoch) + 1
+
+        # add START OF TEC MAP line
+        label = "START OF TEC MAP"
+        line_format = self.header_format.HEADER_FORMATS[label]
+        line  = self.format_header_line([map_index], line_format)
+        lines.append((line+label).ljust(self.max_line_length))
+
+        # add time specifier for a map
+        label = "EPOCH OF CURRENT MAP"
+        line = self._get_header_date_time(epoch)
+        lines.append((line+label).ljust(self.max_line_length))
+        
+        # add values for same latitude
+        for lat, lon_data in epoch_map.data.items():
+            # add grid specifier
+            label = "LAT/LON1/LON2/DLON/H"
+            line_format = self.header_format.HEADER_FORMATS[label]
+            grid_data =[
+                lat, 
+                epoch_map.lon_range.vmin, 
+                epoch_map.lon_range.vmax, 
+                epoch_map.lon_range.vstep, 
+                epoch_map.height
+            ]
+            line = self.format_header_line(grid_data, line_format)
+            lines.append((line+label).ljust(self.max_line_length))
+
+            # add map data
+            chunks = epoch_map.lon_range.get_chunks(self.VALUES_PER_LINE)
+            for start, end in chunks:
+                fmt = "{}I5".format(end - start)
+                line = self.format_header_line(lon_data[start: end], fmt)
+                lines.append(line.ljust(self.max_line_length))
+
+        # add end of map
+        label = "END OF TEC MAP"
+        line_format = self.header_format.HEADER_FORMATS[label]
+        line  = self.format_header_line([map_index], line_format)
+        lines.append((line+label).ljust(self.max_line_length))
+        return lines
 
     def set_header_order(self, order: list=[]):
         """
