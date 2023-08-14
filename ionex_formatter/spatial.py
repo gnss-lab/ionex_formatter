@@ -103,4 +103,36 @@ class SpatialRange():
         if self.vstep == 0 and self.vmax != self.vmin:
             raise FiniteRangeZeroStepError
     
+    def get_node_number(self) -> int:
+        """
+        Rerturn a number of nodes in range including both limits
+        """
+        if self.vstep == 0:
+            return 1
+        else:
+            return int(round((self.vmax - self.vmin) / self.vstep, 0)) + 1
 
+    def get_chunks(self, chunk_size: int) -> list:
+        """
+        Return ranges for chunks given chunk_size.
+
+        :param chunk_size: number of element for a chunk
+
+        :returns: list of (start, stop) for chunk        
+        :rtype: list
+        """
+        num = self.get_node_number()
+        if chunk_size <= 0:
+            return [(0, num)]
+        start_end = [(s, s + chunk_size) for s in range(0, num, chunk_size)]
+        very_last = start_end[-1][1]
+        if very_last > num:
+            start_end = start_end[:-1]
+        # add last chunk that could be not full 
+        if num % chunk_size != 0:
+            start = (num // chunk_size) * chunk_size
+            if start < 0:
+                start_end = [(0, num)]    
+            else:
+                start_end.append((start, num)) 
+        return start_end
