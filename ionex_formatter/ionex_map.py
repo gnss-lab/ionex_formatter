@@ -92,22 +92,21 @@ class IonexMap():
         Sets data given as objects containing lat, lon, val and make map 
         out of it. There
 
-        :param :
+        :param data: list of data used to set map
+        :type data: list of GridCell
         """
         _data = defaultdict(list)
         for cell in data:
             _data[cell.lat].append((cell.lon, cell.val))
 
-        lat_cells = ((self.lat_range.vmax - self.lat_range.vmin ) / 
-                         self.lat_range.vstep + 1)
+        lat_cells = self.lat_range.get_node_number()
         if len(_data.keys()) != lat_cells:
             msg = "Some latitudes are missing {}".format(list(_data.keys()))
             raise ValueError(msg)
 
         for lat, lon_data in _data.items():
             lons = [lon for lon, _ in lon_data]
-            lon_cells = ((self.lon_range.vmax - self.lon_range.vmin ) / 
-                         self.lon_range.vstep + 1)
+            lon_cells = self.lon_range.get_node_number()
             if len(set(lons)) != lon_cells:
                 raise LongitudeCellIsNotSet(lons, lat)
             if self.lon_range.vmin < self.lon_range.vmax:
