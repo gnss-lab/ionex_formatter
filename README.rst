@@ -3,8 +3,6 @@ IONEX formatter
 
 Data format to exchange ionospheric maps like on the Figure below:
 
-* Global map plot
-
 .. image:: docs/img/global_regular.png
     :alt: Global map on regular grid
     :width: 600
@@ -13,6 +11,7 @@ Implements IONosphere map Exchange [format](https://files.igs.org/pub/data/forma
 and writes data in corresponding format to a file. Each file could contain
 several maps, in general file contain maps for a single day. The file names 
 also follows the file name convention `cccedddh.yyI`:
+
 * ccc - 3 character analysis center designator
 * e - extension for region code (G for Global Ionospheric Map)
 * ddd - day of year of the first record (map) in a file
