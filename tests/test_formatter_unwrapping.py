@@ -1,7 +1,10 @@
 import pytest
 from ionex_formatter.formatter import (
+    HeaderDuplicatedLine,
     IonexFile,
-    UnknownFormatSpecifier
+    NumericTokenTooBig,
+    UnknownFormatSpecifier,
+    UnknownFormatingError
 )
 
 class TestFormatterUnwrappingFields():
@@ -54,3 +57,32 @@ class TestFormatterUnwrappingFields():
         format_spec = "3F6.1, 100I3, 10A2"
         with pytest.raises(UnknownFormatSpecifier):
             _ = header_formatter.unwrap_format_spec(format_spec)
+    
+    def test_1(self):
+        ionfile = IonexFile()
+        ionfile.add_comment('lolol')
+    
+    def test_2(self):
+        with pytest.raises(UnknownFormatSpecifier):
+            ionfile = IonexFile()
+            ionfile.format_header_line([1, 2, 3, 5], "F6.1, L6.1, F6.1, F6.1")
+
+    def test_3(self):
+        with pytest.raises(UnknownFormatSpecifier):
+            ionfile = IonexFile()
+            ionfile._verify_formatted([1, 2, 3, 5], 'lolo', 'lol', 4, 3)
+    
+    def test_4(self):
+        with pytest.raises(UnknownFormatingError):
+            ionfile = IonexFile()
+            ionfile._verify_formatted(2.0, "F", "3", 4, 3)
+    
+    def test_5(self):
+        ionfile = IonexFile()
+        ionfile._get_header_numeric_token(2.13, 6, 10)
+
+    def test_6(self):
+        with pytest.raises(NumericTokenTooBig):
+            ionfile = IonexFile()
+            ionfile._get_header_numeric_token(2.13, 2, 10)
+            

@@ -62,3 +62,21 @@ class TestIoneHeaderFormat:
         header = IonexHeader_V_1_1()
         with pytest.raises(TypeError):
             header.load_descriptions(corrupted_descrition_path)
+        
+    def test_1(self):
+        header = IonexHeader_V_1_1()
+        assert header._update() == None
+    
+    def test_2(self):
+        with pytest.raises(FileNotFoundError):
+            header = IonexHeader_V_1_1()
+            header.load_descriptions('/lol/lol')
+    
+    def test_3(self):
+        with pytest.raises(TypeError):
+            header = IonexHeader_V_1_1()
+            header.load_descriptions('ionex_formatter/test_file.json')
+    
+    def test_4(self):
+        header = IonexHeader_V_1_1()
+        header.line_tokens("IONEX VERSION / TYPE")

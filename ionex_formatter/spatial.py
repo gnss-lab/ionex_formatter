@@ -132,7 +132,7 @@ class SpatialRange():
         if num % chunk_size != 0:
             start = (num // chunk_size) * chunk_size
             if start < 0:
-                start_end = [(0, num)]    
+                start_end = [(0, num)]
             else:
                 start_end.append((start, num)) 
         return start_end
