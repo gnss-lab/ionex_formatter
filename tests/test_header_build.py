@@ -1,7 +1,7 @@
 import pytest
 import hashlib
 from . import conftest
-from ionex_formatter.formatter import IonexFile
+from ionex_formatter.formatter import HeaderDuplicatedLine, IonexFile
 from ionex_formatter.spatial import SpatialRange
 from datetime import datetime
 
@@ -207,6 +207,19 @@ class TestIonexHeaderBuild():
         assert len(header) == len(sample_header) 
         assert '\n'.join(header) == ''.join(sample_header)
 
+    def test_header_duplicate(self):
+        with pytest.raises(HeaderDuplicatedLine):
+            ionfile = IonexFile()
+            ionfile.set_spatial_grid(
+            lat_range=SpatialRange(87.5, -87.5, -2.5), 
+            lon_range=SpatialRange(-180, 180, 5),
+            height_range=SpatialRange(450, 450, 0)
+            )
+            ionfile.set_spatial_grid(
+            lat_range=SpatialRange(87.5, -87.5, -2.5), 
+            lon_range=SpatialRange(-180, 180, 5),
+            height_range=SpatialRange(450, 450, 0)
+            )
 
             
 

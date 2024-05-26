@@ -45,7 +45,7 @@ class TestMapFormating():
         map_lines = map_lines[1:-1] # to remove \n
         return map_lines
 
-    def test_map_lines(self, sample_map_lines, map_data):
+    def test_map_lines(self, sample_map_lines, map_data, formatter):
         cells = GridCell.get_list_from_csv(map_data)
         ionex_map = IonexMap(lat_range=SpatialRange(87.5, -87.5, -87.5),
                              lon_range=SpatialRange(-180, 180, 5),
@@ -53,7 +53,6 @@ class TestMapFormating():
                              epoch=datetime(2010, 12, 28)
         ) 
         ionex_map.set_data(cells)
-        formatter = IonexFile()
         formatter.set_maps(
             {datetime(2010, 12, 28):ionex_map}, 
             dtype=IonexMapType.TEC

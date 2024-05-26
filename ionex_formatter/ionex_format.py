@@ -105,7 +105,7 @@ class IonexHeader_V_1_1:
                 if token[-1] == 'A' or token[0].isalpha():
                     format_tokens_number += 1
                     continue
-                raise ValueError('Unknown format token {}'.format(token))
+                # raise ValueError('Unknown format token {}'.format(token))
             if len(label_tokens) == format_tokens_number:
                 self.AUTO_FORMATTED_LABELS.append(label)
         self.AUTO_FORMATTED_LABELS.sort()

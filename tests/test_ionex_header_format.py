@@ -9,7 +9,7 @@ from ionex_formatter.ionex_format import (
 class TestIoneHeaderFormat:
 
     def test_init(self):
-        header_format = IonexHeader_V_1_1()
+        header_format = IonexHeader_V_1_1() 
         auto_labels = [
             "PGM / RUN BY / DATE",
             "DESCRIPTION",
@@ -62,3 +62,21 @@ class TestIoneHeaderFormat:
         header = IonexHeader_V_1_1()
         with pytest.raises(TypeError):
             header.load_descriptions(corrupted_descrition_path)
+    
+    def test_update(self):
+        header = IonexHeader_V_1_1()
+        assert header._update() == None
+
+    def test_file_not_found(self):
+        with pytest.raises(FileNotFoundError):
+            header = IonexHeader_V_1_1()
+            header.load_descriptions('/dir_for_file/file_for_check')
+
+    def test_type_error(self):
+        with pytest.raises(TypeError):
+            header = IonexHeader_V_1_1()
+            header.load_descriptions('ionex_formatter/test_file_not_found.json')
+
+    def test_label_token(self):
+        header = IonexHeader_V_1_1()
+        header.line_tokens("IONEX VERSION / TYPE")

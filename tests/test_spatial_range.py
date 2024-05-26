@@ -89,7 +89,17 @@ class TestSpatialGridDimensions():
     def test_min_decimal_reduce_accuracy_raises(self):
         with pytest.raises(DecimalDigitReduceAccuracyError):
             SpatialRange(0.125, 1.0, 0.125, decimal=2)
+    
+    def test_round_min(self):
+        with pytest.raises(DecimalDigitReduceAccuracyError):
+            SpatialRange(0.125, 1.0, 0.3, decimal=1)
 
+    def test_round_max(self):
+        with pytest.raises(DecimalDigitReduceAccuracyError):
+            SpatialRange(1, 1.456, 0.9, decimal=1)
 
-
-
+    def test_get_chunks_with_negative_start(self):
+        rng = SpatialRange(0, 10, 1)
+        chunks = rng.get_chunks(-1)
+        expected = [(0, rng.get_node_number())]
+        assert chunks == expected
