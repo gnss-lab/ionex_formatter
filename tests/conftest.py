@@ -72,3 +72,8 @@ def map_lines():
     map_lines = __map_lines
     map_lines = map_lines[1:-1] # to remove \n
     return map_lines
+
+@pytest.fixture(scope='session', autouse=True)
+def npz_file():
+    return Path("tests/data_samples/one_day_maps.npz")
+
