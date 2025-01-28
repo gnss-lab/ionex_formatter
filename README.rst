@@ -44,6 +44,28 @@ Usage:
 .. code-block:: bash
     python -m ionex_formatter --center mos --in data.csv --out /path/to/maps
 
+Another way to provide map data is .npz format. Sample data is [here](tests/data_samples/one_day_maps.npz).
+The code for reading is below:
+
+
+.. code-block:: python
+
+    import numpy as np
+    import pytz
+    from datetime import datetime
+
+    data = np.load(fpath)
+    timestamps = data["datetime"]
+    datetimes = [datetime.fromtimestamp(t, tz=pytz.utc) for t in timestamps]
+    grids = {
+        "time": datetimes,
+        "lats": [lat / 10 for lat in range(875, -900, -25)],
+        "lons": [lon for lon in range(-180, 180, 5)]
+    }
+    grids["spatial"] = np.meshgrid(grids["lons"], grids["lats"])
+
+    return data['map'], grids
+
 
 Support
 -------
