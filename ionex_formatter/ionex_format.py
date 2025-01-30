@@ -64,11 +64,13 @@ class IonexHeader_V_1_1:
     def __new__(class_, *args, **kwargs):
         if class_.__instance is None:
             class_.__instance = object.__new__(class_, *args, **kwargs)
-        class_.__instance.init_fields("ionex_formatter/header_line_descriptions.json")
+        header_descr = Path(__file__).parent / "header_line_descriptions.json"
+        class_.__instance.init_fields(header_descr)
         return class_.__instance
 
     def _update(self):
-        self.init_fields("ionex_formatter/header_line_descriptions.json")
+        header_descr = Path(__file__).parent / "header_line_descriptions.json"
+        self.init_fields(header_descr)
 
     def init_fields(self, description_path: str | Path) -> None:
         """
