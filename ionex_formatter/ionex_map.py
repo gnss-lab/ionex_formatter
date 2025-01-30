@@ -101,7 +101,9 @@ class IonexMap():
 
         lat_cells = self.lat_range.get_node_number()
         if len(_data.keys()) != lat_cells:
-            msg = "Some latitudes are missing {}".format(list(_data.keys()))
+            msg = "Some latitudes are missing or extra. Couldn't fit in "
+            msg += f"{lat_cells} cells given data for "
+            msg += f" {len(list(_data.keys()))} cells. See{list(_data.keys())}"
             raise ValueError(msg)
 
         for lat, lon_data in _data.items():
