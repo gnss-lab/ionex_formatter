@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 from typing import Any
 from enum import Enum
@@ -48,8 +48,15 @@ class NumericTokenTooBig(Exception):
     """
     def __init__(self, val: float, widht: int, decimal: int):
         msg = "Value {} with {} decimal digit does not fit {} widht"
-        msg.format(val, decimal, widht)
+        msg = msg.format(val, decimal, widht)
         super().__init__(msg)
+
+class TimeStepError(Exception):
+    """
+    Raised when time step is wrong for example give float number of maps
+    in 24 hours.
+    """
+    pass
 
 class IonexMapType(Enum):
     TEC = 1
@@ -193,10 +200,12 @@ class IonexFile:
             self.line_order=order
 
 
-    def set_version_type_gnss(self, 
-                              version: float=1.0, 
-                              map_type:str="I", 
-                              gnss_type: str="GPS"):
+    def set_version_type_gnss(
+            self, 
+            version: float=1.0, 
+            map_type:str="I", 
+            gnss_type: str="GPS"
+    ):
         label = "IONEX VERSION / TYPE"
         data = [version, map_type, gnss_type]
         self.update_label(label, data)
@@ -236,7 +245,14 @@ class IonexFile:
     def update_label(self, label: str, data: list) -> None:
         """
         Wrapper over format_header_line using line label instead of
-        line format.
+        line format. Format is extracted from HEADER_FORMATS by label.
+        Introduced for user convinience.
+
+        :param label: the name of the label in header
+        :type label: str
+
+        :param data: A list of data elements to be formatted.
+        :type data: list
         """
         line_format = self.header_format.HEADER_FORMATS[label]
         formatted  = self.format_header_line(data, line_format)
@@ -271,7 +287,6 @@ class IonexFile:
         format_string = self.unwrap_format_spec(format_string)
         tokens = format_string.split(', ')
         val_tokens = [f for f in tokens if not 'X' in f]
-
         if len(val_tokens) != len(data):
             msg = "Data length {} doesn't correspond to length of " \
                 "format tokens {}. See data {} and format {}"
@@ -463,6 +478,82 @@ class IonexFile:
             line = line + _id
             line = line.ljust(self.max_line_length)
             self.header[_id].append(line)
+
+    def get_header_lines(
+        self, 
+        *,
+        map_type: IonexMapType,
+        pgm: str,
+        run_by: str,
+        created_at: datetime,
+        first_time: datetime,
+        last_time: datetime, 
+        description: str,
+        timestep: timedelta,
+        number_of_maps: int,
+        elevation_cutoff: float,
+        number_of_stations: int,
+        number_of_satellites: int,
+        sites_names: list[str],
+        version: str = "1.0",
+        gnss_type: str = "GPS",
+        mapping_function: str = "COSZ", 
+        base_radius: float = 6371.0,
+        latitude_range: SpatialRange = SpatialRange(87.5, -87.5, -2.5),
+        longitude_range: SpatialRange = SpatialRange(-180, 180, 5),
+        height_range: SpatialRange = SpatialRange(450, 450, 0),
+        exponent: int = -1,
+        map_dimensions = 2,
+        comment: str = "",
+        labels_order: list[str] = []
+    ) -> list[str]:
+        """
+        Creates header lines like they appear in file using users data
+
+        Time format in header is like "11/14/18  411UT". The parameters need format line
+        in header are in relation with keys in IonexHeader.HEADER_FORMATS 
+
+        :return: list of header lines. One can build header using '\n'.join(header_lines)
+        """
+        # TODO process case if last map is 00:00 for the next day. Should do  +1 ?
+        # TODO add other maps types
+        if map_type == IonexMapType.TEC:
+            str_map_type = "I"
+        self.set_version_type_gnss(version=version, map_type=str_map_type, gnss_type=gnss_type)
+        formated_time = created_at.strftime("%m/%d/%y %H%MUT")
+        str_time = formated_time[:-6] + formated_time[-6:].replace("0", " ")
+        pgm_run_date = [pgm, run_by, str_time]
+        self.update_label("PGM / RUN BY / DATE", pgm_run_date)
+        self.set_description(description)
+        self.set_epoch_range(start=first_time, last=last_time)
+        self.update_label("INTERVAL", [timestep.seconds, ])
+        # number of maps couldn't be obtained from timestep and range since last maps could be at not even type
+        self.update_label("# OF MAPS IN FILE", [number_of_maps, ])
+        self.update_label("MAPPING FUNCTION", [mapping_function, ])
+        self.update_label("ELEVATION CUTOFF", [elevation_cutoff, ])
+        self.update_label("# OF STATIONS", [number_of_stations, ])
+        self.update_label("# OF SATELLITES", [number_of_satellites, ])
+        self.update_label("BASE RADIUS", [base_radius, ])
+        self.update_label("MAP DIMENSION", [map_dimensions, ])
+        self.set_spatial_grid(
+            lat_range=latitude_range, 
+            lon_range=longitude_range,
+            height_range=height_range
+        )
+        self.update_label("EXPONENT", [exponent, ])
+        self.add_comment(comment)
+        self.set_sites(sites_names)
+        self.update_label("START OF AUX DATA", ["DIFFERENTIAL CODE BIASES", ])
+        self.update_label("END OF AUX DATA", ["DIFFERENTIAL CODE BIASES", ])
+        self.update_label("END OF HEADER", [])
+        self.set_header_order(labels_order)
+        # instructions below is needed since some label could have several lines in header
+        # header_lines is list of lines that could be directly writtent to file
+        ordered = [self.header[label] for label in self.line_order]
+        header_lines = list()
+        for label_data in ordered:
+            header_lines.extend(label_data)
+        return header_lines
             
             
     def _get_header_numeric_token(self, 

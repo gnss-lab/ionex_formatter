@@ -1,9 +1,9 @@
 import pytest
 import hashlib
 from . import conftest
-from ionex_formatter.formatter import IonexFile
+from ionex_formatter.formatter import IonexFile, IonexMapType
 from ionex_formatter.spatial import SpatialRange
-from datetime import datetime
+from datetime import datetime, timedelta
 
 description = [
 "Global ionosphere maps for day 362, 2010 (28-12-2010)",       
@@ -197,6 +197,74 @@ class TestIonexHeaderBuild():
             "END OF HEADER"
         ]
         formatter.set_header_order(order)
+        ordered = [formatter.header[label] for label in formatter.line_order]
+        header = list()
+        for label_data in ordered:
+            header.extend(label_data)
+        for header_line, exp_line in zip(header, _sample_header):
+            assert header_line == exp_line
+        assert header == _sample_header
+        assert len(header) == len(sample_header) 
+        assert '\n'.join(header) == ''.join(sample_header)
+
+    def test_header_lines_preparation(self, sample_header):
+        _sample_header = []
+        for line in sample_header:
+            if line.endswith("\n"):
+                _sample_header.append(line[:-1])
+            else:
+                _sample_header.append(line[:])
+        formatter = IonexFile()
+        order = [
+            "IONEX VERSION / TYPE",
+            "PGM / RUN BY / DATE",
+            "DESCRIPTION",
+            "EPOCH OF FIRST MAP",
+            "EPOCH OF LAST MAP",
+            "INTERVAL",
+            "# OF MAPS IN FILE",
+            "MAPPING FUNCTION",
+            "ELEVATION CUTOFF",
+            "# OF STATIONS",
+            "# OF SATELLITES",
+            "OBSERVABLES USED",
+            "BASE RADIUS",
+            "MAP DIMENSION",
+            "HGT1 / HGT2 / DHGT",
+            "LAT1 / LAT2 / DLAT",
+            "LON1 / LON2 / DLON",
+            "EXPONENT",
+            "COMMENT",
+            "START OF AUX DATA",
+            "END OF AUX DATA",
+            "END OF HEADER"
+        ]
+        formatter.get_header_lines(
+            map_type=IonexMapType.TEC,
+            pgm = "tecrms2ionex_4.awk",
+            run_by = "UPC-IonSAT",
+            created_at = datetime(2018, 11, 14, 4, 11, 0),
+            first_time = datetime(2010, 12, 28, 0, 0, 0),
+            last_time = datetime(2010, 12, 28, 23, 59, 24),
+            description = description,
+            timestep = timedelta(seconds=900),
+            number_of_maps=97,
+            elevation_cutoff = 0,
+            number_of_stations = 300,
+            number_of_satellites = 32,
+            sites_names = sites,
+            version = "1.0",
+            gnss_type = "GPS",
+            mapping_function = "COSZ", 
+            base_radius = 6371.0,
+            latitude_range = SpatialRange(87.5, -87.5, -2.5),
+            longitude_range = SpatialRange(-180, 180, 5),
+            height_range = SpatialRange(450, 450, 0),
+            exponent = -1,
+            map_dimensions = 2,
+            comment = comment,
+            labels_order = order
+        )
         ordered = [formatter.header[label] for label in formatter.line_order]
         header = list()
         for label_data in ordered:
