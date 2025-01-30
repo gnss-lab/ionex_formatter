@@ -239,7 +239,7 @@ class TestIonexHeaderBuild():
             "END OF AUX DATA",
             "END OF HEADER"
         ]
-        formatter.get_header_lines(
+        header_lines = formatter.get_header_lines(
             map_type=IonexMapType.TEC,
             pgm = "tecrms2ionex_4.awk",
             run_by = "UPC-IonSAT",
@@ -265,15 +265,11 @@ class TestIonexHeaderBuild():
             comment = comment,
             labels_order = order
         )
-        ordered = [formatter.header[label] for label in formatter.line_order]
-        header = list()
-        for label_data in ordered:
-            header.extend(label_data)
-        for header_line, exp_line in zip(header, _sample_header):
+        for header_line, exp_line in zip(header_lines, _sample_header):
             assert header_line == exp_line
-        assert header == _sample_header
-        assert len(header) == len(sample_header) 
-        assert '\n'.join(header) == ''.join(sample_header)
+        assert header_lines == _sample_header
+        assert len(header_lines) == len(sample_header) 
+        assert '\n'.join(header_lines) == ''.join(sample_header)
 
 
             
