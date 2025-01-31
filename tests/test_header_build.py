@@ -1,7 +1,7 @@
 import pytest
 import hashlib
 from . import conftest
-from ionex_formatter.formatter import IonexFile, IonexMapType
+from ionex_formatter.formatter import IonexFile, IonexMapType, HeaderConfig
 from ionex_formatter.spatial import SpatialRange
 from datetime import datetime, timedelta
 
@@ -239,7 +239,7 @@ class TestIonexHeaderBuild():
             "END OF AUX DATA",
             "END OF HEADER"
         ]
-        header_lines = formatter.get_header_lines(
+        header_config = HeaderConfig(
             map_type=IonexMapType.TEC,
             pgm = "tecrms2ionex_4.awk",
             run_by = "UPC-IonSAT",
@@ -265,6 +265,7 @@ class TestIonexHeaderBuild():
             comment = comment,
             labels_order = order
         )
+        header_lines = formatter.get_header_lines(header_config)
         for header_line, exp_line in zip(header_lines, _sample_header):
             assert header_line == exp_line
         assert header_lines == _sample_header

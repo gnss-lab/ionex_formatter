@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from typing import Any
 from enum import Enum
+from dataclasses import dataclass, field
 
 from .spatial import SpatialRange
 from .ionex_format import IonexHeader
@@ -64,6 +65,34 @@ class IonexMapType(Enum):
     HGT = 3
 
 
+@dataclass
+class HeaderConfig():
+    map_type: IonexMapType
+    pgm: str
+    run_by: str
+    created_at: datetime
+    first_time: datetime
+    last_time: datetime 
+    description: str
+    timestep: timedelta
+    number_of_maps: int
+    elevation_cutoff: float
+    number_of_stations: int
+    number_of_satellites: int
+    sites_names: list[str]
+    version: str = "1.0"
+    gnss_type: str = "GPS"
+    mapping_function: str = "COSZ" 
+    base_radius: float = 6371.0
+    latitude_range: SpatialRange = SpatialRange(87.5, -87.5, -2.5)
+    longitude_range: SpatialRange = SpatialRange(-180, 180, 5)
+    height_range: SpatialRange = SpatialRange(450, 450, 0)
+    exponent: int = -1
+    map_dimensions: int = 2
+    comment: str = ""
+    labels_order: list[str] = field(default_factory=list)
+
+
 class IonexFile:
     
     header_line_length = 60
@@ -78,7 +107,7 @@ class IonexFile:
         self.maps = defaultdict(dict)
         self.set_header_order()
 
-    def set_maps(self, maps: dict[list], dtype: IonexMapType):
+    def set_maps(self, maps: dict[datetime, list], dtype: IonexMapType):
         """
         Set maps to formatter.
 
@@ -86,8 +115,8 @@ class IonexFile:
         For given time there could be several maps for different time 
         (in general there is one map)
 
-        :param order: list of label in order
-        :type order: list
+        :param maps: maps given by epoch
+        :type order: dictionary
 
         :param dtype: type of data stored in map
         :type dtype: IonexMapType
@@ -479,34 +508,7 @@ class IonexFile:
             line = line.ljust(self.max_line_length)
             self.header[_id].append(line)
 
-    def get_header_lines(
-        self, 
-        *,
-        map_type: IonexMapType,
-        pgm: str,
-        run_by: str,
-        created_at: datetime,
-        first_time: datetime,
-        last_time: datetime, 
-        description: str,
-        timestep: timedelta,
-        number_of_maps: int,
-        elevation_cutoff: float,
-        number_of_stations: int,
-        number_of_satellites: int,
-        sites_names: list[str],
-        version: str = "1.0",
-        gnss_type: str = "GPS",
-        mapping_function: str = "COSZ", 
-        base_radius: float = 6371.0,
-        latitude_range: SpatialRange = SpatialRange(87.5, -87.5, -2.5),
-        longitude_range: SpatialRange = SpatialRange(-180, 180, 5),
-        height_range: SpatialRange = SpatialRange(450, 450, 0),
-        exponent: int = -1,
-        map_dimensions = 2,
-        comment: str = "",
-        labels_order: list[str] = []
-    ) -> list[str]:
+    def get_header_lines(self, config: HeaderConfig) -> list[str]:
         """
         Creates header lines like they appear in file using users data
 
@@ -517,36 +519,40 @@ class IonexFile:
         """
         # TODO process case if last map is 00:00 for the next day. Should do  +1 ?
         # TODO add other maps types
-        if map_type == IonexMapType.TEC:
+        if config.map_type == IonexMapType.TEC:
             str_map_type = "I"
-        self.set_version_type_gnss(version=version, map_type=str_map_type, gnss_type=gnss_type)
-        formated_time = created_at.strftime("%m/%d/%y %H%MUT")
-        str_time = formated_time[:-6] + formated_time[-6:].replace("0", " ")
-        pgm_run_date = [pgm, run_by, str_time]
-        self.update_label("PGM / RUN BY / DATE", pgm_run_date)
-        self.set_description(description)
-        self.set_epoch_range(start=first_time, last=last_time)
-        self.update_label("INTERVAL", [timestep.seconds, ])
-        # number of maps couldn't be obtained from timestep and range since last maps could be at not even type
-        self.update_label("# OF MAPS IN FILE", [number_of_maps, ])
-        self.update_label("MAPPING FUNCTION", [mapping_function, ])
-        self.update_label("ELEVATION CUTOFF", [elevation_cutoff, ])
-        self.update_label("# OF STATIONS", [number_of_stations, ])
-        self.update_label("# OF SATELLITES", [number_of_satellites, ])
-        self.update_label("BASE RADIUS", [base_radius, ])
-        self.update_label("MAP DIMENSION", [map_dimensions, ])
-        self.set_spatial_grid(
-            lat_range=latitude_range, 
-            lon_range=longitude_range,
-            height_range=height_range
+        self.set_version_type_gnss(
+            version=config.version, 
+            map_type=str_map_type, 
+            gnss_type=config.gnss_type
         )
-        self.update_label("EXPONENT", [exponent, ])
-        self.add_comment(comment)
-        self.set_sites(sites_names)
+        formated_time = config.created_at.strftime("%m/%d/%y %H%MUT")
+        str_time = formated_time[:-6] + formated_time[-6:].replace("0", " ")
+        pgm_run_date = [config.pgm, config.run_by, str_time]
+        self.update_label("PGM / RUN BY / DATE", pgm_run_date)
+        self.set_description(config.description)
+        self.set_epoch_range(start=config.first_time, last=config.last_time)
+        self.update_label("INTERVAL", [config.timestep.seconds, ])
+        # number of maps couldn't be obtained from timestep and range since last maps could be at not even type
+        self.update_label("# OF MAPS IN FILE", [config.number_of_maps, ])
+        self.update_label("MAPPING FUNCTION", [config.mapping_function, ])
+        self.update_label("ELEVATION CUTOFF", [config.elevation_cutoff, ])
+        self.update_label("# OF STATIONS", [config.number_of_stations, ])
+        self.update_label("# OF SATELLITES", [config.number_of_satellites, ])
+        self.update_label("BASE RADIUS", [config.base_radius, ])
+        self.update_label("MAP DIMENSION", [config.map_dimensions, ])
+        self.set_spatial_grid(
+            lat_range=config.latitude_range, 
+            lon_range=config.longitude_range,
+            height_range=config.height_range
+        )
+        self.update_label("EXPONENT", [config.exponent, ])
+        self.add_comment(config.comment)
+        self.set_sites(config.sites_names)
         self.update_label("START OF AUX DATA", ["DIFFERENTIAL CODE BIASES", ])
         self.update_label("END OF AUX DATA", ["DIFFERENTIAL CODE BIASES", ])
         self.update_label("END OF HEADER", [])
-        self.set_header_order(labels_order)
+        self.set_header_order(config.labels_order)
         # instructions below is needed since some label could have several lines in header
         # header_lines is list of lines that could be directly writtent to file
         ordered = [self.header[label] for label in self.line_order]
@@ -554,7 +560,7 @@ class IonexFile:
         for label_data in ordered:
             header_lines.extend(label_data)
         return header_lines
-            
+    
             
     def _get_header_numeric_token(self, 
                                   val: float, 
