@@ -33,7 +33,9 @@ class HeaderDuplicatedLine(Exception):
     """
     Raised when try to set header line while it already has values
     """
-    pass
+    def __init__(self, duplicates: str, header: str):
+        msg = f"There are duplicates for:\n{duplicates} \n in \n{header}"
+        super().__init__(msg)
 
 class NumericTokenTooBig(Exception):
     """
@@ -63,6 +65,15 @@ class IonexMapType(Enum):
     TEC = 1
     RMS = 2
     HGT = 3
+
+class MapsWereNotSetError(Exception):
+    """
+    Raised when use of maps is assumed but they are not set
+    """
+    def __init__(self, type: IonexMapType):
+        msg = "There are no maps for {} to save".format(type)
+        super().__init__(msg)
+
 
 
 @dataclass
@@ -496,7 +507,7 @@ class IonexFile:
                 "height": "HGT1 / HGT2 / DHGT"}
         duplicates =[c for c in ids.values() if c in self.header]
         if duplicates:
-            raise HeaderDuplicatedLine
+            raise HeaderDuplicatedLine("\n".join(duplicates), "\n".join(self.header))
         for rng_type, rng in ranges.items():
             rng.verify()
             mnt = self._get_header_numeric_token(rng.vmin, width, rng.decimal)
@@ -561,6 +572,31 @@ class IonexFile:
             header_lines.extend(label_data)
         return header_lines
     
+    def get_all_maps_lines(self, saved_types: list[IonexMapType]):
+        """
+        Get lines if all maps to be written to file.
+        """
+        for save_type in saved_types:
+            if not save_type in self.maps:
+                raise MapsWereNotSetError(save_type)
+        data_lines = []
+        for save_type in saved_types:
+            epochs = list(self.maps[save_type].keys())
+            epochs.sort()
+            for epoch in epochs:
+                one_map_lines = self.get_map_lines(save_type, epoch)
+                data_lines.extend(one_map_lines)
+        return data_lines
+    
+    def get_file_lines(self, config: HeaderConfig, saved_types: list[IonexMapType]):
+        """
+        Combines header and map lines in single content that could be written to file directly
+        """
+        data_lines = self.get_all_maps_lines(saved_types)
+        header_lines = self.get_header_lines(config=config)
+        file_lines = header_lines
+        file_lines.extend(data_lines)
+        return file_lines
             
     def _get_header_numeric_token(self, 
                                   val: float, 
